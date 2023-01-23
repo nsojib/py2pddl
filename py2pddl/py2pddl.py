@@ -197,7 +197,8 @@ def action(*Types):
         def wrapper(*args, **kwargs):
 
             # Subheader
-            action_name = f"(:action {func.__name__.replace('_', '-')}"
+            action_name = f"(:action {func.__name__.replace('_', '_')}"
+            # print('action_name: ', action_name)
 
             # We don't need the self for the rest of this code
             _, *params = list(inspect.signature(func).parameters.items())
@@ -209,8 +210,14 @@ def action(*Types):
             dummy_args = [Type(varname)
                           for Type, varname in zip(Types, varnames)]
             all_args = list(args) + dummy_args
+           
+            precond, effect, observe = func(*all_args)
 
-            precond, effect = func(*all_args)
+            # print('precond:', precond)
+            # print('effect:', effect)
+            # print('observe:', observe)
+            # print('')
+
 
             # The first type is self; we'll ignore that
             _, *args = args
@@ -226,7 +233,9 @@ def action(*Types):
             repre = [f"?{a} - {b.__name__.lower()}"
                      for a, b in zip(varnames, Types)]
             repre = " ".join(repre)
+            repre = repre.replace('_', '')
             repre = f"\t\t:parameters ({repre})"
+
 
             # Precond
             if not isinstance(precond, list):
@@ -240,10 +249,24 @@ def action(*Types):
             effect = [str(e.split(" | ")[1]) for e in effect]
             effect = "\t\t:effect " + join(effect, " ")
 
+            n_observe=len(observe)
+            #observe
+            if not isinstance(observe, list):
+                observe = [observe]
+            observe = [str(e.split(" | ")[1]) for e in observe]
+            observe = "\t\t:observe " + join(observe, " ")
+
+            print('effect: ', effect)
+            print('observe: ', observe, n_observe)
+
             # Final
-            actn = [action_name, repre, precond, effect, "\t)"]
+            actn = [action_name, repre, precond, effect,"\t)"]
+             
+            if n_observe>0:
+                actn = [action_name, repre, precond, observe, "\t)"]
+
             actn = join(actn, "\n", False)
-            actn = actn.replace('_', '-')
+            actn = actn.replace('_', '_')
 
             return actn
 
@@ -264,7 +287,7 @@ def predicate(*Types) -> str:
             # We don't actually need it
             # func(*args, **kwargs)
 
-            func_name = func.__name__.replace("_", "-")
+            func_name = func.__name__.replace("_", "_")
             if func_name.endswith("-"):
                 func_name = func_name[:-1]
 
@@ -289,12 +312,15 @@ def predicate(*Types) -> str:
             repr1 = f"({func_name} {repr1})"
 
             # Representation 2 (in :action :precondition/:effect)
-            repr2 = [f"?{str(arg).replace('_', '-')}" for arg in args]
+            repr2 = [f"?{str(arg).replace('_', '')}" for arg in args]
             repr2 = " ".join(repr2)
             repr2 = f"({func_name} {repr2})"
 
             # Representation 3 (in :init and :goal)
-            args = [str(arg).replace('_', '-') for arg in args]
+            args = [str(arg).replace('_', '') for arg in args]
+            
+            # print('args: ', args)
+
             params3 = "(" + " ".join([func_name, *args]) + ")"
 
             return PDDLString(repr1) + " | " + PDDLString(repr2) + " | " + PDDLString(params3)
