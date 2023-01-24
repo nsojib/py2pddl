@@ -213,12 +213,7 @@ def action(*Types):
            
             precond, effect, observe = func(*all_args)
 
-            # print('precond:', precond)
-            # print('effect:', effect)
-            # print('observe:', observe)
-            # print('')
-
-
+ 
             # The first type is self; we'll ignore that
             _, *args = args
 
@@ -241,13 +236,36 @@ def action(*Types):
             if not isinstance(precond, list):
                 precond = [precond]
             precond = [str(p.split(" | ")[1]) for p in precond]
-            precond = "\t\t:precondition " + join(precond, " ")
+            #print('precond: ', precond, "length: ", len(precond))
+            pdata=''
+            for i in range(len(precond)):
+                sp="\t\t\t\t"
+                if i==0:
+                    sp=""
+                pdata +=sp+ precond[i]+'\n'
+            
+            if len(precond)>1:
+                pdata = " ( and \n\t\t\t\t" + pdata +"\t\t\t)"  
+            precond = "\t\t:precondition " +  pdata 
+            # precond = "\t\t:precondition " + join(precond, " ")
+
+
 
             # Effect
             if not isinstance(effect, list):
                 effect = [effect]
             effect = [str(e.split(" | ")[1]) for e in effect]
-            effect = "\t\t:effect " + join(effect, " ")
+            edata=''
+            for i in range(len(effect)):
+                sp="\t\t\t\t"
+                if i==0:
+                    sp=""
+                edata +=sp+ effect[i]+'\n'
+
+            if len(effect)>1:
+                edata = " ( and \n\t\t\t\t" + edata +"\t\t\t)"
+            effect = "\t\t:effect " + edata 
+            #effect = "\t\t:effect " + join(effect, " ")
 
             n_observe=len(observe)
             #observe
@@ -256,8 +274,8 @@ def action(*Types):
             observe = [str(e.split(" | ")[1]) for e in observe]
             observe = "\t\t:observe " + join(observe, " ")
 
-            print('effect: ', effect)
-            print('observe: ', observe, n_observe)
+            #print('effect: ', effect)
+            #print('observe: ', observe, n_observe)
 
             # Final
             actn = [action_name, repre, precond, effect,"\t)"]
@@ -353,7 +371,17 @@ def init(func) -> str:
             raise TypeError("Return type of `init` method must be a list")
 
         inits = [str(g.split(" | ")[2]) for g in inits]
-        inits = f"(:init {join(inits, and_marker=False)})"
+        idata=''
+        if len(inits)>1:
+            for i in range(len(inits)):
+                sp="\t"
+                if i==0:
+                    sp=""
+                idata +=sp+ inits[i]+'\n'
+            inits = "(:init \n\t" + idata +")"
+
+        #inits = f"(:init {join(inits, and_marker=False)})"
+
         return PDDLString(inits)
     setattr(wrapper, "section", "init")
     return wrapper
