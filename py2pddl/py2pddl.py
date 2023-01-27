@@ -366,11 +366,19 @@ def goal(func) -> str:
 def init(func) -> str:
     @wraps(func)
     def wrapper(*args, **kwargs):
-        inits = func(*args, **kwargs)
+        inits, unknowns, oneofs = func(*args, **kwargs)
         if not isinstance(inits, list):
             raise TypeError("Return type of `init` method must be a list")
 
+         
         inits = [str(g.split(" | ")[2]) for g in inits]
+        unknowns= [str(g.split(" | ")[2]) for g in unknowns]
+        oneofs = [str(g.split(" | ")[2]) for g in oneofs]
+
+        # print('inits: ', inits) 
+        # print('unknowns: ', unknowns)
+        # print('oneofs: ', oneofs)
+
         idata=''
         if len(inits)>1:
             for i in range(len(inits)):
@@ -378,9 +386,22 @@ def init(func) -> str:
                 if i==0:
                     sp=""
                 idata +=sp+ inits[i]+'\n'
-            inits = "(:init \n\t" + idata +")"
+            inits = "(:init \n\t" + idata #+")"
 
-        #inits = f"(:init {join(inits, and_marker=False)})"
+        #inits = f"(:init {join(inits, and_marker=False)})" 
+        idata2=''
+        if len(unknowns)>1:
+            for i in range(len(unknowns)):
+                sp="\t" 
+                idata2 +=sp+ "(unknown \t" + unknowns[i]+")"+'\n'
+        
+        idata3=''
+        if len(oneofs)>1:
+            for i in range(len(oneofs)):
+                sp="\t" 
+                idata3 +=sp+ oneofs[i]+' '
+        idata3="\t(oneof \t" + idata3 +")"
+        inits = inits + idata2 + idata3 +"\n\t)\n"
 
         return PDDLString(inits)
     setattr(wrapper, "section", "init")

@@ -2,6 +2,7 @@
 * underscore to hyphen undone
 * underscore in parameter will be replaced with ''
 * observe is supported
+* unknown, oneof are supported.
 
 
 
@@ -46,5 +47,6 @@ python3 -m py2pddl.parse medicine.py
 ### run contingency planner
 ```
 ./FF -o domain.pddl -f problem.pddl -a 0
+./FF -o m_domain.pddl -f m_problem.pddl -a 0
 ```
 
