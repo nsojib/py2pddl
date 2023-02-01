@@ -106,8 +106,6 @@ class FoodDomain(Domain):
         observe: list = [self.person_at(p, loc)] 
         return precond, effect, observe
 
-
-
     @action(Robot)
     def initMoveToLandmark(self, r):
         precond: list = [~self.init_move_to_landmark(), ~self.init_guide_person_to_landmark_attempt()]
@@ -180,7 +178,7 @@ class FoodDomain(Domain):
 
     @action(Person)
     def UpdateSuccess3(self, p):
-        precond: list = [~self.remind_food_succeeded(), ~self.remind_food_succeeded2(), self.asked_caregiver_help(p), ~self.init_move_to_landmark(), ~self.init_guide_person_to_landmark_attempt()]
+        precond: list = [self.asked_caregiver_help(p), ~self.init_move_to_landmark(), ~self.init_guide_person_to_landmark_attempt()]
         effect: list = [self.success()]
         return precond, effect, []
 
@@ -190,6 +188,14 @@ class FoodDomain(Domain):
         effect: list = []
         observe: list = [self.remind_food_succeeded()]
         return precond, effect, observe 
+
+
+    @action(Robot, Person, Landmark)
+    def remindAutomatedFoodAt2(self, r, p, loc):
+        precond: list = [~self.remind_food_succeeded(), self.robot_at(r, loc), self.person_at(p, loc), self.food_location(loc), ~self.init_move_to_landmark(), ~self.init_guide_person_to_landmark_attempt()]
+        effect: list = []
+        observe: list = [self.remind_food_succeeded2()]
+        return precond, effect, observe 
  
     @action(Robot, Person, Landmark)
     def askCaregiverHelpFood1(self, r, p, loc):
@@ -197,6 +203,11 @@ class FoodDomain(Domain):
         effect: list = [self.asked_caregiver_help(p)]
         return precond, effect, []
 
+    @action(Robot, Person, Landmark)
+    def askCaregiverHelpFood2(self, r, p, loc):
+        precond: list = [~self.guide_to_succeeded_attempt_1(), ~self.guide_to_succeeded_attempt_2(), self.robot_at(r, loc), self.person_at(p, loc), ~self.init_move_to_landmark(), ~self.init_guide_person_to_landmark_attempt()]
+        effect: list = [self.asked_caregiver_help(p)]
+        return precond, effect, []
  
 # observe actions should be defined unknown in problem file.
 """
@@ -221,18 +232,18 @@ class FoodProblem(FoodDomain):
             self.food_location(self.landmarks['kitchen']), 
         ]
         unknowns=[
-            self.person_at(self.persons["nathan"], self.landmarks["couch"]),  #TODO: unknown
-            self.person_at(self.persons["nathan"], self.landmarks["kitchen"]),  #TODO: unknown
-            self.person_at(self.persons["nathan"], self.landmarks["home"]),  #TODO: unknown
+            self.person_at(self.persons["nathan"], self.landmarks["couch"]), 
+            self.person_at(self.persons["nathan"], self.landmarks["kitchen"]), 
+            self.person_at(self.persons["nathan"], self.landmarks["home"]),
             self.guide_to_succeeded_attempt_1(),
             self.guide_to_succeeded_attempt_2(),
             self.remind_food_succeeded(),
             self.remind_food_succeeded2(),
         ]
         oneofs=[
-            self.person_at(self.persons["nathan"], self.landmarks["couch"]),  #TODO: unknown
-            self.person_at(self.persons["nathan"], self.landmarks["kitchen"]),  #TODO: unknown
-            self.person_at(self.persons["nathan"], self.landmarks["home"]),  #TODO: unknown
+            self.person_at(self.persons["nathan"], self.landmarks["couch"]),
+            self.person_at(self.persons["nathan"], self.landmarks["kitchen"]), 
+            self.person_at(self.persons["nathan"], self.landmarks["home"])
         ]
  
         return at, unknowns , oneofs
